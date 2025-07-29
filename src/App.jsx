@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import DashboardPage from './components/DashboardPage';
 import './App.css';
+import { FiMoon, FiSun } from 'react-icons/fi';
 
 const App = () => {
   const [isConnected, setIsConnected] = useState(false);
@@ -45,7 +46,7 @@ const App = () => {
             : 'bg-white hover:bg-gray-100 text-gray-600'
         } shadow-lg z-50`}
       >
-        {theme === 'light' ? '🌙' : '☀️'}
+        {theme === 'light' ? <FiMoon /> : <FiSun />}
       </button>
 
       {/* Main Content */}
