@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import EmployeeList from './EmployeeList';
 import HistoryPage from './HistoryPage';
-import { loadDemoData, clearDemoData, hasDemoData } from '../demo-data.js';
+import { loadDemoData, clearDemoData, hasDemoData } from '../../demo-data.js';
 
 const DashboardPage = ({ userAddress, onDisconnect }) => {
   const [activeTab, setActiveTab] = useState('employees');
