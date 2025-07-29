@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import EmployeeList from './EmployeeList';
 import HistoryPage from './HistoryPage';
+import Button from './ui/Button';
 import { loadDemoData, clearDemoData, hasDemoData } from '../../demo-data.js';
 
 const DashboardPage = ({ userAddress, onDisconnect }) => {
@@ -68,85 +69,95 @@ const DashboardPage = ({ userAddress, onDisconnect }) => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">BatchPay Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Welcome, {shortAddress}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            {!hasDemoData() ? (
-              <button
-                onClick={handleLoadDemoData}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm"
+    <div className="min-h-screen bg-neutral-light">
+      {/* Header Bar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-24 py-16">
+          <div className="flex items-center justify-between">
+            {/* Logo + App name */}
+            <div className="flex items-center space-x-16">
+              <h1 className="text-2xl font-bold font-inter text-secondary">BatchPay</h1>
+            </div>
+            
+            {/* User controls */}
+            <div className="flex items-center space-x-16">
+              <span className="text-body font-inter text-gray-600">
+                {shortAddress}
+              </span>
+              {!hasDemoData() ? (
+                <Button
+                  onClick={handleLoadDemoData}
+                  variant="secondary"
+                  size="small"
+                >
+                  Load Demo Data
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleClearDemoData}
+                  variant="ghost"
+                  size="small"
+                >
+                  Clear Demo Data
+                </Button>
+              )}
+              <Button
+                onClick={onDisconnect}
+                variant="danger"
+                size="small"
               >
-                Load Demo Data
-              </button>
-            ) : (
-              <button
-                onClick={handleClearDemoData}
-                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded-lg transition-colors duration-200 text-sm"
-              >
-                Clear Demo Data
-              </button>
-            )}
-            <button
-              onClick={onDisconnect}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
-            >
-              Disconnect
-            </button>
+                Disconnect
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setActiveTab('employees')}
-            className={`flex-1 px-6 py-4 text-center font-semibold transition-colors duration-200 ${
-              activeTab === 'employees'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Employees
-          </button>
-          <button
-            onClick={() => setActiveTab('history')}
-            className={`flex-1 px-6 py-4 text-center font-semibold transition-colors duration-200 ${
-              activeTab === 'history'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            History
-          </button>
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-24">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab('employees')}
+              className={`px-24 py-16 text-body font-inter font-semibold border-b-2 transition-all duration-200 ${
+                activeTab === 'employees'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-600 border-transparent hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              Employees
+            </button>
+            <button
+              onClick={() => setActiveTab('history')}
+              className={`px-24 py-16 text-body font-inter font-semibold border-b-2 transition-all duration-200 ${
+                activeTab === 'history'
+                  ? 'text-primary border-primary'
+                  : 'text-gray-600 border-transparent hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              History
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* Tab Content */}
-        <div className="p-6">
-          {activeTab === 'employees' ? (
-            <EmployeeList
-              employees={employees}
-              onAddEmployee={addEmployee}
-              onRemoveEmployee={removeEmployee}
-              onUpdateEmployee={updateEmployee}
-              onPaymentSuccess={addPaymentToHistory}
-              userAddress={userAddress}
-            />
-          ) : (
-            <HistoryPage
-              paymentHistory={paymentHistory}
-              onUpdateStatus={updatePaymentStatus}
-            />
-          )}
-        </div>
+      {/* Tab Content */}
+      <div className="max-w-6xl mx-auto px-24 py-32">
+        {activeTab === 'employees' ? (
+          <EmployeeList
+            employees={employees}
+            onAddEmployee={addEmployee}
+            onRemoveEmployee={removeEmployee}
+            onUpdateEmployee={updateEmployee}
+            onPaymentSuccess={addPaymentToHistory}
+            userAddress={userAddress}
+          />
+        ) : (
+          <HistoryPage
+            paymentHistory={paymentHistory}
+            onUpdateStatus={updatePaymentStatus}
+          />
+        )}
       </div>
     </div>
   );
