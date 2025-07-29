@@ -3,6 +3,13 @@ import { BasePayButton } from '@base-org/account-ui/react';
 import { createBaseAccountSDK } from '@base-org/account';
 import { base } from '@base-org/account';
 import { parseUnits } from 'viem';
+import { Users, DollarSign, CheckCircle, AlertCircle, Clock, Wallet } from 'lucide-react';
+import Modal from './ui/Modal';
+import Button from './ui/Button';
+import { Card } from './ui/Card';
+import Badge from './ui/Badge';
+import Loading from './ui/Loading';
+import { useToast } from './ui/Toast';
 
 // USDC contract address on Base mainnet
 const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
@@ -40,6 +47,8 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
   const [error, setError] = useState('');
   const [sdk, setSdk] = useState(null);
   const [provider, setProvider] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     // Initialize SDK
@@ -58,11 +67,12 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
       } catch (err) {
         console.error('Failed to initialize SDK:', err);
         setError('Failed to initialize payment system');
+        showError('Failed to initialize payment system');
       }
     };
 
     initializeSDK();
-  }, []);
+  }, [showError]);
 
   const totalAmount = employees.reduce((sum, emp) => sum + parseFloat(emp.amount || 0), 0);
 
@@ -82,7 +92,9 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
 
   const sendBatchPayment = async () => {
     if (!provider || !userAddress) {
-      setError('Provider or user address not available');
+      const errorMsg = 'Provider or user address not available';
+      setError(errorMsg);
+      showError(errorMsg);
       return;
     }
 
@@ -128,6 +140,7 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
       });
 
       setPaymentStatus('success');
+      showSuccess(`✅ Payment sent! Tx: ${txId.slice(0, 8)}...${txId.slice(-6)}`);
 
       // Add to payment history
       onPaymentSuccess({
@@ -146,8 +159,10 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
 
     } catch (err) {
       console.error('Payment failed:', err);
-      setError(err.message || 'Payment failed. Please try again.');
+      const errorMsg = err.message || 'Payment failed. Please try again.';
+      setError(errorMsg);
       setPaymentStatus('error');
+      showError(`❌ Payment failed: ${errorMsg}`);
     } finally {
       setIsProcessing(false);
     }
@@ -168,60 +183,97 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Batch Payment</h2>
-          <button
-            onClick={onClose}
-            disabled={isProcessing}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
-          >
-            ✕
-          </button>
-        </div>
+  const getStatusIcon = () => {
+    switch (paymentStatus) {
+      case 'preparing':
+      case 'sending':
+        return <Clock className="w-5 h-5 text-blue-500" />;
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-500" />;
+      default:
+        return null;
+    }
+  };
 
-        {/* Payment Summary */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 mb-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold mb-4 text-blue-800 dark:text-blue-200">
-            Payment Summary
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-blue-600 dark:text-blue-300">Employees</p>
-              <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-                {employees.length}
-              </p>
+  // Show fullscreen loading during transaction processing
+  if (isProcessing && (paymentStatus === 'preparing' || paymentStatus === 'sending')) {
+    return (
+      <Loading
+        variant="fullscreen"
+        size="large"
+        message={getStatusMessage()}
+      />
+    );
+  }
+
+  return (
+    <>
+      {/* Main Payment Modal */}
+      <Modal
+        isOpen={!showConfirmation}
+        onClose={onClose}
+        title="Batch Payment"
+        maxWidth="max-w-3xl"
+        showCloseButton={!isProcessing}
+      >
+        {/* Payment Summary Card */}
+        <Card className="bg-primary-50 border-primary-200 mb-24">
+          <div className="flex items-center justify-between mb-16">
+            <h3 className="text-lg font-bold font-inter text-primary-900">
+              Payment Summary
+            </h3>
+            <Wallet className="w-6 h-6 text-primary-600" />
+          </div>
+          <div className="grid grid-cols-2 gap-16">
+            <div className="flex items-center gap-12">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-sm font-inter text-primary-700">Employees</p>
+                <p className="text-2xl font-bold font-inter text-primary-900">
+                  {employees.length}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-blue-600 dark:text-blue-300">Total Amount</p>
-              <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-                ${totalAmount.toFixed(2)} USDC
-              </p>
+            <div className="flex items-center gap-12">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-sm font-inter text-primary-700">Total Amount</p>
+                <p className="text-2xl font-bold font-inter text-primary-900">
+                  ${totalAmount.toFixed(2)} USDC
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Employee List */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-          <div className="space-y-3 max-h-60 overflow-y-auto">
+        <div className="mb-24">
+          <h3 className="text-lg font-bold font-inter text-secondary mb-16">
+            Payment Details
+          </h3>
+          <div className="space-y-8 max-h-64 overflow-y-auto border border-gray-200 rounded-card p-16">
             {employees.map((employee, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                className="flex justify-between items-center p-12 bg-gray-50 rounded-button"
               >
                 <div>
-                  <p className="font-semibold">{employee.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">
+                  <p className="font-semibold font-inter text-secondary">
+                    {employee.name}
+                  </p>
+                  <p className="text-sm text-gray-600 font-mono">
                     {employee.address.slice(0, 6)}...{employee.address.slice(-4)}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">${parseFloat(employee.amount).toFixed(2)}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">USDC</p>
-                </div>
+                <Badge variant="info">
+                  ${parseFloat(employee.amount).toFixed(2)} USDC
+                </Badge>
               </div>
             ))}
           </div>
@@ -229,51 +281,102 @@ const PaymentPage = ({ employees, onPaymentSuccess, onClose, userAddress }) => {
 
         {/* Status Messages */}
         {paymentStatus !== 'idle' && (
-          <div className={`mb-6 p-4 rounded-lg ${
+          <Card className={`mb-24 ${
             paymentStatus === 'success' 
-              ? 'bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+              ? 'bg-green-50 border-green-200'
               : paymentStatus === 'error'
-              ? 'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-              : 'bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+              ? 'bg-red-50 border-red-200'
+              : 'bg-blue-50 border-blue-200'
           }`}>
-            <p className={`font-semibold ${
-              paymentStatus === 'success' 
-                ? 'text-green-800 dark:text-green-200'
-                : paymentStatus === 'error'
-                ? 'text-red-800 dark:text-red-200'
-                : 'text-blue-800 dark:text-blue-200'
-            }`}>
-              {getStatusMessage()}
-            </p>
-          </div>
+            <div className="flex items-center gap-12">
+              {getStatusIcon()}
+              <p className={`font-semibold font-inter ${
+                paymentStatus === 'success' 
+                  ? 'text-green-800'
+                  : paymentStatus === 'error'
+                  ? 'text-red-800'
+                  : 'text-blue-800'
+              }`}>
+                {getStatusMessage()}
+              </p>
+            </div>
+          </Card>
         )}
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-800 dark:text-red-200 font-semibold">{error}</p>
-          </div>
+          <Card className="mb-24 bg-red-50 border-red-200">
+            <div className="flex items-center gap-12">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <p className="text-red-800 font-semibold font-inter">{error}</p>
+            </div>
+          </Card>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
-          <button
+        <div className="flex gap-16">
+          <Button
             onClick={onClose}
+            variant="ghost"
+            size="medium"
+            className="flex-1"
             disabled={isProcessing}
-            className="flex-1 px-4 py-3 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
           >
-            Cancel
-          </button>
+            {paymentStatus === 'success' ? 'Close' : 'Cancel'}
+          </Button>
+          {paymentStatus !== 'success' && (
+            <Button
+              onClick={() => setShowConfirmation(true)}
+              variant="primary"
+              size="medium"
+              className="flex-1"
+              disabled={isProcessing || !provider}
+            >
+              Confirm & Pay
+            </Button>
+          )}
+        </div>
+      </Modal>
+
+      {/* Payment Confirmation Modal */}
+      <Modal
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        title="Confirm Payment"
+        maxWidth="max-w-md"
+      >
+        <div className="text-center mb-24">
+          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-16">
+            <Wallet className="w-8 h-8 text-primary-600" />
+          </div>
+          <h3 className="text-xl font-bold font-inter text-secondary mb-8">
+            Confirm Batch Payment
+          </h3>
+          <p className="text-body font-inter text-gray-600">
+            You are about to send <span className="font-semibold">${totalAmount.toFixed(2)} USDC</span> to{' '}
+            <span className="font-semibold">{employees.length} employee{employees.length !== 1 ? 's' : ''}</span>.
+          </p>
+        </div>
+
+        <div className="flex gap-16">
+          <Button
+            onClick={() => setShowConfirmation(false)}
+            variant="secondary"
+            size="medium"
+            className="flex-1"
+          >
+            Back
+          </Button>
           <BasePayButton
             onPay={sendBatchPayment}
             disabled={isProcessing || !provider}
-            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
+            className="flex-1 h-40 px-24 bg-primary text-white font-semibold font-inter rounded-button hover:bg-primary-600 transition-all duration-200 disabled:opacity-50"
           >
-            {isProcessing ? 'Processing...' : `Pay ${employees.length} Employees`}
+            {isProcessing ? 'Processing...' : 'Confirm & Pay'}
           </BasePayButton>
         </div>
-      </div>
-    </div>
+      </Modal>
+    </>
   );
 };
 
