@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import EmployeeModal from './EmployeeModal';
-import PaymentPage from './PaymentPage';
+// src/components/EmployeeList.jsx
+import React, { useState } from "react";
+import EmployeeModal from "./EmployeeModal";
+import PaymentPage from "./PaymentPage";
+import { useAuth } from "../context/AuthContext";
 
-const EmployeeList = ({ 
-  employees, 
-  onAddEmployee, 
-  onRemoveEmployee, 
+const EmployeeList = ({
+  employees,
+  onAddEmployee,
+  onRemoveEmployee,
   onUpdateEmployee,
   onPaymentSuccess,
-  userAddress 
 }) => {
+  const { isAuthenticated, userAddress } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -30,7 +32,28 @@ const EmployeeList = ({
     setEditingEmployee(null);
   };
 
-  const totalAmount = employees.reduce((sum, emp) => sum + parseFloat(emp.amount || 0), 0);
+  const handlePaymentSuccess = (paymentDetails) => {
+    onPaymentSuccess(paymentDetails);
+    setShowPayment(false);
+  };
+
+  const closePaymentModal = () => {
+    setShowPayment(false);
+  };
+
+  const totalAmount = employees.reduce(
+    (sum, emp) => sum + parseFloat(emp.amount || 0),
+    0
+  );
+
+  const handlePayAllClick = () => {
+    if (!isAuthenticated) {
+      // The PaymentPage component will handle showing the auth modal
+      setShowPayment(true);
+    } else {
+      setShowPayment(true);
+    }
+  };
 
   return (
     <div>
@@ -39,8 +62,14 @@ const EmployeeList = ({
         <div>
           <h2 className="text-2xl font-bold mb-2">Employee Management</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            {employees.length} employee{employees.length !== 1 ? 's' : ''} • Total: ${totalAmount.toFixed(2)} USDC
+            {employees.length} employee{employees.length !== 1 ? "s" : ""} •
+            Total: ${totalAmount.toFixed(2)} USDC
           </p>
+          {!isAuthenticated && employees.length > 0 && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+              ⚠️ Sign in with Base to enable payments
+            </p>
+          )}
         </div>
         <div className="flex gap-3">
           <button
@@ -51,8 +80,15 @@ const EmployeeList = ({
           </button>
           {employees.length > 0 && (
             <button
-              onClick={() => setShowPayment(true)}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+              onClick={handlePayAllClick}
+              className={`px-6 py-2 font-semibold rounded-lg transition-colors duration-200 ${
+                isAuthenticated
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-gray-400 hover:bg-gray-500 text-white cursor-pointer"
+              }`}
+              title={
+                !isAuthenticated ? "Sign in with Base to enable payments" : ""
+              }
             >
               Pay All (${totalAmount.toFixed(2)})
             </button>
@@ -130,9 +166,9 @@ const EmployeeList = ({
       {showPayment && (
         <PaymentPage
           employees={employees}
-          onPaymentSuccess={onPaymentSuccess}
-          onClose={() => setShowPayment(false)}
-          userAddress={userAddress}
+          onPaymentSuccess={handlePaymentSuccess}
+          onClose={closePaymentModal}
+          
         />
       )}
     </div>

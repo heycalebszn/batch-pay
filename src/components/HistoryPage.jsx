@@ -36,7 +36,8 @@ const HistoryPage = ({ paymentHistory, onUpdateStatus }) => {
       const sdk = createBaseAccountSDK({
         appName: 'BatchPay',
         appLogoUrl: 'https://batchpay.app/logo.png',
-        appChainIds: [base.constants.CHAIN_IDS.base]
+        appChainIds: [base.constants.CHAIN_IDS.base],
+        telemetry: true,
       });
 
       // Note: getPaymentStatus might not be available in the current SDK version
