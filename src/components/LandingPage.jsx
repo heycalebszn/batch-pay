@@ -1,16 +1,11 @@
 import React from 'react';
-import { SignInWithBaseButton } from '@base-org/account-ui/react';
 import { FiZap, FiDollarSign, FiShield } from 'react-icons/fi';
+import { SignInWithBase } from './SignInWithBase';
 
-const LandingPage = ({ onConnect }) => {
-  const handleConnect = (address) => {
-    onConnect(address);
-  };
-
+const LandingPage = () => {
   return (
     <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-20">
-        
         {/* Hero Section */}
         <div className="text-center mb-20">
           <h1 className="text-6xl md:text-7xl font-bold mb-8">
@@ -24,7 +19,6 @@ const LandingPage = ({ onConnect }) => {
             Save time and gas fees with atomic batch transfers.
           </p>
         </div>
-
         {/* Connect Wallet Section */}
         <div className="max-w-md mx-auto mb-20">
           <div className="border-2 border-gray-300 dark:border-gray-600 p-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -34,16 +28,11 @@ const LandingPage = ({ onConnect }) => {
             <p className="text-gray-600 dark:text-gray-300 mb-8 text-center">
               Connect your Base wallet to start managing payroll
             </p>
-            
             <div className="text-center">
-              <SignInWithBaseButton 
-                onConnect={handleConnect}
-                className="w-full py-4 px-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors duration-200 rounded-md"
-              />
+              <SignInWithBase />
             </div>
           </div>
         </div>
-
         {/* Stats */}
         <div className="grid grid-cols-3 gap-8 mb-20 max-w-2xl mx-auto">
           <div className="text-center">
@@ -59,7 +48,6 @@ const LandingPage = ({ onConnect }) => {
             <div className="text-sm text-gray-500 dark:text-gray-400">Users</div>
           </div>
         </div>
-
         {/* Features */}
         <div className="grid md:grid-cols-3 gap-8">
           <div className="border border-gray-200 dark:border-gray-700 p-8 bg-white dark:bg-gray-800 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 shadow-sm">
@@ -71,7 +59,6 @@ const LandingPage = ({ onConnect }) => {
               Atomic batch processing means all payments execute simultaneously or not at all
             </p>
           </div>
-          
           <div className="border border-gray-200 dark:border-gray-700 p-8 bg-white dark:bg-gray-800 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 shadow-sm">
             <FiDollarSign className="text-4xl mb-6" />
             <h3 className="text-xl font-bold mb-4">
@@ -81,7 +68,6 @@ const LandingPage = ({ onConnect }) => {
               Reduce gas costs by up to 95% compared to individual transactions
             </p>
           </div>
-          
           <div className="border border-gray-200 dark:border-gray-700 p-8 bg-white dark:bg-gray-800 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors duration-200 shadow-sm">
             <FiShield className="text-4xl mb-6" />
             <h3 className="text-xl font-bold mb-4">
@@ -92,7 +78,6 @@ const LandingPage = ({ onConnect }) => {
             </p>
           </div>
         </div>
-
         {/* Footer */}
         <div className="text-center mt-20">
           <div className="inline-flex items-center space-x-2 border border-gray-300 dark:border-gray-600 rounded-full px-4 py-2 bg-white dark:bg-gray-800">
