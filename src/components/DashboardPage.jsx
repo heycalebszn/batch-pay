@@ -1,62 +1,70 @@
-import React, { useState } from 'react';
-import EmployeeList from './EmployeeList';
-import HistoryPage from './HistoryPage';
-import { loadDemoData, clearDemoData, hasDemoData } from '../../demo-data.js';
+import React, { useState } from "react";
+import EmployeeList from "./EmployeeList";
+import HistoryPage from "./HistoryPage";
+import { loadDemoData, clearDemoData, hasDemoData } from "../../demo-data.js";
+import { useDisconnect } from "wagmi";
 
-const DashboardPage = ({ userAddress, onDisconnect }) => {
-  const [activeTab, setActiveTab] = useState('employees');
+const DashboardPage = ({ userAddress }) => {
+  const [activeTab, setActiveTab] = useState("employees");
   const [employees, setEmployees] = useState(() => {
-    const saved = localStorage.getItem('batchpay-employees');
+    const saved = localStorage.getItem("batchpay-employees");
     return saved ? JSON.parse(saved) : [];
   });
   const [paymentHistory, setPaymentHistory] = useState(() => {
-    const saved = localStorage.getItem('batchpay-history');
+    const saved = localStorage.getItem("batchpay-history");
     return saved ? JSON.parse(saved) : [];
   });
 
+  const { disconnect } = useDisconnect();
+
   // Save employees to localStorage whenever it changes
   React.useEffect(() => {
-    localStorage.setItem('batchpay-employees', JSON.stringify(employees));
+    localStorage.setItem("batchpay-employees", JSON.stringify(employees));
   }, [employees]);
 
   // Save history to localStorage whenever it changes
   React.useEffect(() => {
-    localStorage.setItem('batchpay-history', JSON.stringify(paymentHistory));
+    localStorage.setItem("batchpay-history", JSON.stringify(paymentHistory));
   }, [paymentHistory]);
 
-  const shortAddress = userAddress 
+  const shortAddress = userAddress
     ? `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`
-    : '';
+    : "";
 
   const addEmployee = (employee) => {
-    setEmployees(prev => [...prev, { ...employee, id: Date.now().toString() }]);
+    setEmployees((prev) => [
+      ...prev,
+      { ...employee, id: Date.now().toString() },
+    ]);
   };
 
   const removeEmployee = (id) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== id));
+    setEmployees((prev) => prev.filter((emp) => emp.id !== id));
   };
 
   const updateEmployee = (id, updatedEmployee) => {
-    setEmployees(prev => prev.map(emp => 
-      emp.id === id ? { ...updatedEmployee, id } : emp
-    ));
+    setEmployees((prev) =>
+      prev.map((emp) => (emp.id === id ? { ...updatedEmployee, id } : emp))
+    );
   };
 
   const addPaymentToHistory = (payment) => {
-    setPaymentHistory(prev => [payment, ...prev]);
+    setPaymentHistory((prev) => [payment, ...prev]);
   };
 
   const updatePaymentStatus = (txId, status) => {
-    setPaymentHistory(prev => prev.map(payment => 
-      payment.txId === txId ? { ...payment, status } : payment
-    ));
+    setPaymentHistory((prev) =>
+      prev.map((payment) =>
+        payment.txId === txId ? { ...payment, status } : payment
+      )
+    );
   };
 
   const handleLoadDemoData = () => {
     loadDemoData();
     // Reload the data from localStorage
-    const savedEmployees = localStorage.getItem('batchpay-employees');
-    const savedHistory = localStorage.getItem('batchpay-history');
+    const savedEmployees = localStorage.getItem("batchpay-employees");
+    const savedHistory = localStorage.getItem("batchpay-history");
     if (savedEmployees) setEmployees(JSON.parse(savedEmployees));
     if (savedHistory) setPaymentHistory(JSON.parse(savedHistory));
   };
@@ -95,8 +103,8 @@ const DashboardPage = ({ userAddress, onDisconnect }) => {
               </button>
             )}
             <button
-              onClick={onDisconnect}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors duration-200"
+              onClick={() => disconnect()}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
             >
               Disconnect
             </button>
@@ -108,21 +116,21 @@ const DashboardPage = ({ userAddress, onDisconnect }) => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 mb-8">
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
-            onClick={() => setActiveTab('employees')}
+            onClick={() => setActiveTab("employees")}
             className={`flex-1 px-6 py-4 text-center font-semibold transition-colors duration-200 ${
-              activeTab === 'employees'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              activeTab === "employees"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             Employees
           </button>
           <button
-            onClick={() => setActiveTab('history')}
+            onClick={() => setActiveTab("history")}
             className={`flex-1 px-6 py-4 text-center font-semibold transition-colors duration-200 ${
-              activeTab === 'history'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              activeTab === "history"
+                ? "text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             History
@@ -131,7 +139,7 @@ const DashboardPage = ({ userAddress, onDisconnect }) => {
 
         {/* Tab Content */}
         <div className="p-6">
-          {activeTab === 'employees' ? (
+          {activeTab === "employees" ? (
             <EmployeeList
               employees={employees}
               onAddEmployee={addEmployee}

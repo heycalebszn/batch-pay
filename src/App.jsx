@@ -5,6 +5,7 @@ import "./App.css";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { useAccount } from "wagmi";
 
+
 const App = () => {
   const { isConnected, address } = useAccount();
   const [theme, setTheme] = useState("light");
